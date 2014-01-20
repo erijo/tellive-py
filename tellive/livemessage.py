@@ -56,10 +56,17 @@ class LiveMessageToken(object):
 
     @staticmethod
     def deserialize(data):
+        def _find(data, needle):
+            needle = ord(needle)
+            index = 0
+            while index < len(data):
+                if data[index] == needle:
+                    return index
+                index += 1
+            raise ValueError
+
         def deserialize_int(data):
-            end = data.find(ord('s'))
-            if end == -1:
-                raise ValueError
+            end = _find(data, 's')
             return (LiveMessageToken(int(data[:end], 16)), data[end + 1:])
 
         def deserialize_list(data):
@@ -78,9 +85,7 @@ class LiveMessageToken(object):
             return (LiveMessageToken(result), data[1:])
 
         def deserialize_string(data, is_base64=False):
-            end = data.find(ord(':'))
-            if end == -1:
-                raise ValueError
+            end = _find(data, ':')
             value_end = end + 1 + int(data[:end], 16)
             value = data[end + 1:value_end]
             if is_base64:
@@ -141,7 +146,7 @@ class LiveMessage(object):
     def deserialize(data):
         message = LiveMessage()
         while data:
-            (token, data) = LiveMessageToken.deserialize(data)
+            token, data = LiveMessageToken.deserialize(data)
             if not token:
                 break
             message.append(token.value)
