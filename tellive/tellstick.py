@@ -142,29 +142,39 @@ class TellstickLiveClient(object):
         message.append(dev_list)
         self.send_message(message)
 
-    def report_device_event(self, device, method, data):
+    def report_device_event(self, device_id, method, data):
         message = LiveMessage("DeviceEvent")
-        message.append(device.id)
+        message.append(device_id)
         message.append(method)
         message.append(data)
         self.send_message(message)
 
+    def _sensor(self, sensor):
+        value_list = []
+        for datatype in sensor.DATATYPES.values():
+            if not sensor.has_value(datatype):
+                continue
+            value = sensor.value(datatype)
+            value_list.append({'type': datatype, 'value': value.value,
+                               'lastUp': value.timestamp})
+            s = {'protocol': sensor.protocol, 'model': sensor.model,
+                 'sensor_id': sensor.id}
+        return s, value_list
+
     def report_sensors(self, sensors):
         sensor_list = []
         for sensor in sensors:
-            value_list = []
-            for datatype in sensor.DATATYPES:
-                if not sensor.has_value(datatype):
-                    continue
-                value = sensor.value(datatype)
-                value_list.append({'type': datatype, 'value': value.value,
-                                   'lastUp': value.timestamp})
-            s = {'protocol': sensor.protocol, 'model': sensor.model,
-                 'sensor_id': sensor.id, 'name': ""}
+            s, value_list = self._sensor(sensor)
+            s['name'] = ''
             sensor_list.append([s, value_list])
+
         message = LiveMessage("SensorsReport")
         message.append(sensor_list)
         self.send_message(message)
 
     def report_sensor_values(self, sensor):
-        pass
+        s, value_list = self._sensor(sensor)
+        message = LiveMessage("SensorEvent")
+        message.append(s)
+        message.append(value_list)
+        self.send_message(message)

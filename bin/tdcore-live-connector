@@ -19,7 +19,7 @@
 
 from tellive.tellstick import TellstickLiveClient
 from tellive.livemessage import LiveMessage
-from tellcore.telldus import TelldusCore, Device
+from tellcore.telldus import TelldusCore, Device, Sensor
 import tellcore.constants as const
 
 import select
@@ -53,6 +53,11 @@ def main():
     def on_device_event(device_id, method, data, cid):
         client.report_device_event(device_id, method, data)
     core.register_device_event(on_device_event)
+
+    def on_sensor_event(protocol, model, id, datatype, value, timestamp, cid):
+        sensor = Sensor(protocol, model, id, datatype)
+        client.report_sensor_values(sensor)
+    core.register_sensor_event(on_sensor_event)
 
     ping_time = time.time()
     pong_time = time.time()
