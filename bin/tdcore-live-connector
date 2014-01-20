@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2014 Erik Johansson <erik@ejohansson.se>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA
+
+from tellive.tellstick import TellstickLiveClient
+from tellive.livemessage import LiveMessage
+from tellcore.telldus import TelldusCore, Device
+import tellcore.constants as const
+
+import select
+import time
+
+def handle_command(device, action, value=None):
+    if action == "turnon":
+        device.turn_on()
+    elif action == "turnoff":
+        device.turn_off()
+    else:
+        print("Unkown command {}", action)
+
+def main():
+    # Get keys from http://api.telldus.com/keys/index
+    public_key = ''
+    private_key = ''
+
+    # Update this after registration
+    uuid = ''
+
+    supported_methods = const.TELLSTICK_TURNON \
+        | const.TELLSTICK_TURNOFF
+
+    client = TellstickLiveClient(public_key, private_key)
+    (server, port) = client.connect_to_first_available_server()
+    print("Connected to {}:{}".format(server, port))
+
+    core = TelldusCore()
+
+    def on_device_event(device_id, method, data, cid):
+        client.report_device_event(device_id, method, data)
+    core.register_device_event(on_device_event)
+
+    ping_time = time.time()
+    pong_time = time.time()
+
+    client.register(version=1, uuid=uuid)
+    while True:
+        rlist, wlist, xlist = select.select([client.socket], [], [], 0.5)
+
+        now = time.time()
+        if rlist and rlist[0] == client.socket:
+            msg = client.receive_message()
+
+            if msg.subject() == client.SUBJECT_COMMAND:
+                params = msg.parameter(0)
+                device = Device(params['id'])
+                handle_command(device, params['action'], params.get('value'))
+                if 'ACK' in params:
+                    client.acknowledge(params['ACK'])
+
+            elif msg.subject() == client.SUBJECT_PONG:
+                pong_time = now
+
+            elif msg.subject() == client.SUBJECT_REGISTERD:
+                methods = msg.parameter(0)['supportedMethods']
+                supported_methods = supported_methods & methods
+                print("Client is registered, supported methods: "
+                      "0x{:x} -> 0x{:x}".format(methods, supported_methods))
+                client.report_devices(core.devices(), supported_methods)
+                client.report_sensors(core.sensors())
+
+            elif msg.subject() == client.SUBJECT_NOT_REGISTERED:
+                print("This client is not activated, please activate "
+                      "it by visiting:")
+                print(msg.parameter(0)['url'])
+                print("UUID: {}".format(msg.parameter(0)['uuid']))
+                client.disconnect()
+                break
+
+            elif msg.subject() == client.SUBJECT_DISCONNECT:
+                client.disconnect()
+                break
+
+            else:
+                print("Unknown subject {}".format(msg.subject()))
+
+        if now - pong_time >= 6 * 60:
+            raise TimeoutError("No pong received in 6 minutes")
+        if now - ping_time >= 2 * 60:
+            ping_time = now
+            client.ping()
+
+        core.callback_dispatcher.process_pending_callbacks()
+
+if __name__ == '__main__':
+    main()
