@@ -25,6 +25,17 @@ import tellcore.constants as const
 import select
 import time
 
+# Get keys from http://api.telldus.com/keys/index
+PUBLIC_KEY = ''
+PRIVATE_KEY = ''
+
+# Update this after registration
+UUID = ''
+
+# Must match commands in handle_command
+SUPPORTED_METHODS = const.TELLSTICK_TURNON \
+    | const.TELLSTICK_TURNOFF
+
 def handle_command(device, action, value=None):
     if action == "turnon":
         device.turn_on()
@@ -34,17 +45,9 @@ def handle_command(device, action, value=None):
         print("Unkown command {}", action)
 
 def main():
-    # Get keys from http://api.telldus.com/keys/index
-    public_key = ''
-    private_key = ''
+    assert(PUBLIC_KEY and PRIVATE_KEY)
+    client = TellstickLiveClient(PUBLIC_KEY, PRIVATE_KEY)
 
-    # Update this after registration
-    uuid = ''
-
-    supported_methods = const.TELLSTICK_TURNON \
-        | const.TELLSTICK_TURNOFF
-
-    client = TellstickLiveClient(public_key, private_key)
     (server, port) = client.connect_to_first_available_server()
     print("Connected to {}:{}".format(server, port))
 
@@ -62,9 +65,14 @@ def main():
     ping_time = time.time()
     pong_time = time.time()
 
-    client.register(version=1, uuid=uuid)
+    supported_methods = SUPPORTED_METHODS
+    client.register(version=1, uuid=UUID)
     while True:
-        rlist, wlist, xlist = select.select([client.socket], [], [], 0.5)
+        try:
+            rlist, wlist, xlist = select.select([client.socket], [], [], 0.5)
+        except KeyboardInterrupt:
+            client.disconnect()
+            break
 
         now = time.time()
         if rlist and rlist[0] == client.socket:
