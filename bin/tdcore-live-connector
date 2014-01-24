@@ -34,13 +34,34 @@ UUID = ''
 
 # Must match commands in handle_command
 SUPPORTED_METHODS = const.TELLSTICK_TURNON \
-    | const.TELLSTICK_TURNOFF
+    | const.TELLSTICK_TURNOFF \
+    | const.TELLSTICK_BELL \
+    | const.TELLSTICK_DIM \
+    | const.TELLSTICK_LEARN \
+    | const.TELLSTICK_EXECUTE \
+    | const.TELLSTICK_UP \
+    | const.TELLSTICK_DOWN \
+    | const.TELLSTICK_STOP
 
 def handle_command(device, action, value=None):
     if action == "turnon":
         device.turn_on()
     elif action == "turnoff":
         device.turn_off()
+    elif action == "bell":
+        device.bell()
+    elif action == "dim":
+        device.dim(value)
+    elif action == "learn":
+        device.learn()
+    elif action == "execute":
+        device.execute()
+    elif action == "up":
+        device.up()
+    elif action == "down":
+        device.down()
+    elif action == "stop":
+        device.stop()
     else:
         print("Unkown command {}", action)
 
