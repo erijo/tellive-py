@@ -35,12 +35,13 @@ class TellstickLiveClient(object):
     # <no parameters>
     SUBJECT_DISCONNECT = "disconnect"
 
-    def __init__(self, public_key, private_key):
+    def __init__(self, public_key, private_key, debug=False):
         super(TellstickLiveClient, self).__init__()
         self.socket = None
         self.public_key = public_key
         self.private_key = private_key
         self.hash_method = "sha1"
+        self.debug = debug
 
     def ssl_context(self):
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
@@ -100,12 +101,14 @@ class TellstickLiveClient(object):
         envelope = message.create_signed_message(
             self.private_key, self.hash_method)
 
-        print("Sending:", envelope.serialize())
+        if self.debug:
+            print("-> ", envelope.serialize())
         self.socket.write(envelope.serialize())
 
     def receive_message(self):
         data = self.socket.read(1024)
-        print("Received:", data)
+        if self.debug:
+            print("<- ", data)
 
         envelope = LiveMessage.deserialize(data)
         if not envelope.verify_signature(self.private_key, self.hash_method):
