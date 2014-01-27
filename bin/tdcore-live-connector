@@ -22,15 +22,10 @@ from tellive.livemessage import LiveMessage
 from tellcore.telldus import TelldusCore, Device, Sensor
 import tellcore.constants as const
 
+import argparse
+import configparser
 import select
 import time
-
-# Get keys from http://api.telldus.com/keys/index
-PUBLIC_KEY = ''
-PRIVATE_KEY = ''
-
-# Update this after registration
-UUID = ''
 
 # Must match commands in handle_command
 SUPPORTED_METHODS = const.TELLSTICK_TURNON \
@@ -65,9 +60,9 @@ def handle_command(device, action, value=None):
     else:
         print("Unkown command {}", action)
 
-def main():
-    assert(PUBLIC_KEY and PRIVATE_KEY)
-    client = TellstickLiveClient(PUBLIC_KEY, PRIVATE_KEY)
+def main(config):
+    client = TellstickLiveClient(config['publickey'], config['privatekey'],
+                                 debug=config.getboolean('debug'))
 
     (server, port) = client.connect_to_first_available_server()
     print("Connected to {}:{}".format(server, port))
@@ -87,7 +82,8 @@ def main():
     pong_time = time.time()
 
     supported_methods = SUPPORTED_METHODS
-    client.register(version=1, uuid=UUID)
+    client.register(version=1, uuid=config['uuid'])
+
     while True:
         try:
             rlist, wlist, xlist = select.select([client.socket], [], [], 0.5)
@@ -118,10 +114,9 @@ def main():
                 client.report_sensors(core.sensors())
 
             elif msg.subject() == client.SUBJECT_NOT_REGISTERED:
-                print("This client is not activated, please activate "
-                      "it by visiting:")
-                print(msg.parameter(0)['url'])
-                print("UUID: {}".format(msg.parameter(0)['uuid']))
+                print("Activate this client by visiting: '{}'".
+                      format(msg.parameter(0)['url']))
+                config['uuid'] = msg.parameter(0)['uuid']
                 client.disconnect()
                 break
 
@@ -141,4 +136,26 @@ def main():
         core.callback_dispatcher.process_pending_callbacks()
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(
+        description='Connect a TellStick to Telldus Live')
+    parser.add_argument('config', help='Configuration file to use')
+    args = parser.parse_args()
+
+    section = 'settings'
+    config = configparser.ConfigParser()
+    config[section] = {'publickey': '', 'privatekey': '', 'uuid': '',
+                       'debug': False}
+    config.read(args.config)
+
+    if not (config[section]['publickey'] and config[section]['privatekey']):
+        url = "http://api.telldus.com/keys/index"
+        print("Point your browser to '{}' and 'Generate a private token...'".
+              format(url))
+        config[section]['publickey'] = input("Enter public key: ")
+        config[section]['privatekey'] = input("Enter private key: ")
+
+    try:
+        main(config[section])
+    finally:
+        with open(args.config, 'w') as configfile:
+            config.write(configfile)
