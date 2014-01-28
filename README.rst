@@ -38,7 +38,7 @@ Installation
 
 .. code-block:: bash
 
-    $ pip install tellive-py
+    $ pip install tellcore-py tellive-py
 
 Example
 -------
