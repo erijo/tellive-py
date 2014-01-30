@@ -17,6 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
+import tellive
 from tellive.tellstick import TellstickLiveClient
 from tellive.livemessage import LiveMessage
 from tellcore.telldus import TelldusCore, Device, Sensor
@@ -86,7 +87,7 @@ def main(config):
     pong_time = time.time()
 
     supported_methods = SUPPORTED_METHODS
-    client.register(version=1, uuid=config['uuid'])
+    client.register(version=tellive.__version__, uuid=config['uuid'])
 
     while True:
         try:
