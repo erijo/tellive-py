@@ -43,6 +43,18 @@ Installation
 Example
 -------
 
+To run the included program for connecting a TellStick to Telldus Live:
+
 .. code-block:: bash
 
     $ tellive_core_connector ~/.config/tellive.conf
+
+The API can also be used by your own program. This how you would connect to
+Telldus Live and register the client (with PUBLIC_KEY and PRIVATE_KEY from
+`here <http://api.telldus.com/keys/index>`_):
+
+.. code-block:: python
+
+    client = TellstickLiveClient(PUBLIC_KEY, PRIVATE_KEY)
+    (server, port) = client.connect_to_first_available_server()
+    client.register(version="0.1")
