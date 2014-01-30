@@ -120,7 +120,7 @@ class TellstickLiveClient(object):
         message = LiveMessage("Register")
         message.append({'key': self.public_key, 'uuid': uuid,
                         'hash': self.hash_method})
-        message.append({'protocol': 2, 'version': version,
+        message.append({'protocol': 2, 'version': str(version),
                         'os': "linux", 'os-version': "unknown"})
         self.send_message(message)
 
