@@ -27,6 +27,10 @@ import configparser
 import select
 import time
 
+# Offical keys for tellive_core_connector
+PUBLIC_KEY = "THETECHET2STUSWAGACRUWEFU5EWUW5W"
+PRIVATE_KEY = "PES7ANEWURUPHANETUJUPEGEKAWUFAHE"
+
 # Must match commands in handle_command
 SUPPORTED_METHODS = const.TELLSTICK_TURNON \
     | const.TELLSTICK_TURNOFF \
@@ -61,7 +65,7 @@ def handle_command(device, action, value=None):
         print("Unkown command {}", action)
 
 def main(config):
-    client = TellstickLiveClient(config['publickey'], config['privatekey'],
+    client = TellstickLiveClient(PUBLIC_KEY, PRIVATE_KEY,
                                  debug=config.getboolean('debug'))
 
     (server, port) = client.connect_to_first_available_server()
@@ -143,16 +147,8 @@ if __name__ == '__main__':
 
     section = 'settings'
     config = configparser.ConfigParser()
-    config[section] = {'publickey': '', 'privatekey': '', 'uuid': '',
-                       'debug': False}
+    config[section] = {'uuid': '', 'debug': False}
     config.read(args.config)
-
-    if not (config[section]['publickey'] and config[section]['privatekey']):
-        url = "http://api.telldus.com/keys/index"
-        print("Point your browser to '{}' and 'Generate a private token...'".
-              format(url))
-        config[section]['publickey'] = input("Enter public key: ")
-        config[section]['privatekey'] = input("Enter private key: ")
 
     try:
         main(config[section])
