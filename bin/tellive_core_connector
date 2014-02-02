@@ -133,7 +133,7 @@ def main(config):
                 logging.warning("Unknown subject '%s'", msg.subject())
 
         if now - pong_time >= 6 * 60:
-            raise TimeoutError("No pong received in 6 minutes")
+            raise RuntimeError("No pong received in 6 minutes")
         if now - ping_time >= 2 * 60:
             ping_time = now
             client.ping()

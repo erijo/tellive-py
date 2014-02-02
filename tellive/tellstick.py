@@ -61,7 +61,7 @@ class TellstickLiveClient(object):
 
         response = conn.getresponse()
         if response.status != http.OK:
-            raise ConnectionError("Could not connect to {}:{}: {} {}".format(
+            raise RuntimeError("Could not connect to {}:{}: {} {}".format(
                     server, port, response.status, response.reason))
 
         servers = []
@@ -94,7 +94,7 @@ class TellstickLiveClient(object):
                 return server
             except:
                 pass
-        raise ConnectionError("Could not connect to any available server")
+        raise RuntimeError("Could not connect to any available server")
 
     def disconnect(self):
         if self.socket:
