@@ -10,6 +10,7 @@ NEXT (TBD)
 * Reconnect if connection is lost for some reason.
 * Fixed problem with Python 3.2.
 * Added support for reload request from server.
+* Only report sensors that are named in the config file.
 
 
 0.1.1 (2014-01-28)

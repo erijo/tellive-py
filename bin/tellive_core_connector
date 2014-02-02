@@ -72,6 +72,12 @@ def main(config):
     (server, port) = client.connect_to_first_available_server()
     logging.info("Connected to %s:%d", server, port)
 
+    def sensor_name(sensor):
+        key = "sensor_{0.id}_{0.protocol}_{0.model}".format(sensor)
+        if not key in config:
+            config[key] = ""
+        return config[key]
+
     core = TelldusCore()
 
     def on_device_event(device_id, method, data, cid):
@@ -80,7 +86,8 @@ def main(config):
 
     def on_sensor_event(protocol, model, id, datatype, value, timestamp, cid):
         sensor = Sensor(protocol, model, id, datatype)
-        client.report_sensor_values(sensor)
+        if sensor_name(sensor):
+            client.report_sensor_values(sensor)
     core.register_sensor_event(on_sensor_event)
 
     ping_time = time.time()
@@ -116,7 +123,12 @@ def main(config):
                 logging.debug("Client is registered, supported methods: "
                               "0x%02x -> 0x%02x", methods, supported_methods)
                 client.report_devices(core.devices(), supported_methods)
-                client.report_sensors(core.sensors())
+
+                sensors = []
+                for sensor in core.sensors():
+                    if sensor_name(sensor):
+                        sensors.append(sensor)
+                client.report_sensors(sensors, name_function=sensor_name)
 
             elif msg.subject() == client.SUBJECT_NOT_REGISTERED:
                 logging.info("Activate this client by visiting: '%s'",

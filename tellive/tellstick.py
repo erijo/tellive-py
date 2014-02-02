@@ -169,11 +169,13 @@ class TellstickLiveClient(object):
                  'sensor_id': sensor.id}
         return s, value_list
 
-    def report_sensors(self, sensors):
+    def report_sensors(self, sensors, name_function=None):
+        if not name_function:
+            name_function = lambda x: ''
         sensor_list = []
         for sensor in sensors:
             s, value_list = self._sensor(sensor)
-            s['name'] = ''
+            s['name'] = name_function(sensor)
             sensor_list.append([s, value_list])
 
         message = LiveMessage("SensorsReport")
