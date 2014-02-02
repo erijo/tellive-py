@@ -73,7 +73,7 @@ def main(config):
     logging.info("Connected to %s:%d", server, port)
 
     def sensor_name(sensor):
-        key = "sensor_{0.id}_{0.protocol}_{0.model}".format(sensor)
+        key = "sensor_{0.protocol}_{0.model}_{0.id}".format(sensor)
         if not key in config:
             config[key] = ""
         return config[key]
@@ -156,8 +156,17 @@ def main(config):
         core.callback_dispatcher.process_pending_callbacks()
 
 if __name__ == '__main__':
+    epilog = """
+The configuration file will automatically be updated to list all sensors found
+on the system, but no values will be sent to Telldus Live. For that to happen
+you need to edit the configuration file and give each sensor that you wish to
+report a name. If you for example have a Oregon EA4C sensor with id 78 in your
+bedroom, you could change the line "sensor_oregon_ea4c_78 =" to
+"sensor_oregon_ea4c_78 = Bedroom" and the sensor will show up in Telldus Live
+with the name Bedroom.
+"""
     parser = argparse.ArgumentParser(
-        description='Connect a TellStick to Telldus Live')
+        description='Connect a TellStick to Telldus Live', epilog=epilog)
     parser.add_argument('config', help='Configuration file to use')
     parser.add_argument('-d', '--debug', help="Enable debug logging",
                         action='store_true')
