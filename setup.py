@@ -23,7 +23,7 @@ setup(
     author_email='erik@ejohansson.se',
     packages=['tellive'],
     provides=['tellive'],
-    install_requires=['tellcore-py >= 1.0'],
+    install_requires=['tellcore-py >= 1.0.3'],
     scripts=['bin/tellive_core_connector'],
     url='https://github.com/erijo/tellive-py',
     license='GPLv3+',
