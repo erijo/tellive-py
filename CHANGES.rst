@@ -1,8 +1,8 @@
 Changelog
 =========
 
-NEXT (TBD)
-----------
+0.2.0 (2014-02-02)
+------------------
 
 * tellive_core_connector now uses official keys from Telldus, so you no longer
   need to use private tokens.
