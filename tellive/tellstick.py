@@ -18,6 +18,7 @@
 from .livemessage import LiveMessage
 
 import http.client as http
+import logging
 import socket
 import ssl
 import xml.parsers.expat as expat
@@ -35,13 +36,12 @@ class TellstickLiveClient(object):
     # <no parameters>
     SUBJECT_DISCONNECT = "disconnect"
 
-    def __init__(self, public_key, private_key, debug=False):
+    def __init__(self, public_key, private_key):
         super(TellstickLiveClient, self).__init__()
         self.socket = None
         self.public_key = public_key
         self.private_key = private_key
         self.hash_method = "sha1"
-        self.debug = debug
 
     def ssl_context(self):
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
@@ -54,12 +54,14 @@ class TellstickLiveClient(object):
 
         :return: list of (address, port) tuples
         """
+        logging.debug("Fetching server list from %s:%d", server, port)
+
         conn = http.HTTPSConnection(server, port, context=self.ssl_context())
         conn.request('GET', "/server/assign?protocolVersion=2")
 
         response = conn.getresponse()
         if response.status != http.OK:
-            raise ConnectionError("could not connect to {}:{}: {} {}".format(
+            raise ConnectionError("Could not connect to {}:{}: {} {}".format(
                     server, port, response.status, response.reason))
 
         servers = []
@@ -73,6 +75,7 @@ class TellstickLiveClient(object):
         parser.StartElementHandler = extract_servers
         parser.ParseFile(response)
 
+        logging.debug("Found %d available servers", len(servers))
         return servers
 
     def connect(self, address, timeout=5):
@@ -86,11 +89,12 @@ class TellstickLiveClient(object):
     def connect_to_first_available_server(self, **kwargs):
         for server in self.servers():
             try:
+                logging.debug("Connecting to %s:%d", server[0], server[1])
                 self.connect(server, **kwargs)
                 return server
             except:
                 pass
-        raise ConnectionError("could not connect to any available server")
+        raise ConnectionError("Could not connect to any available server")
 
     def disconnect(self):
         if self.socket:
@@ -101,14 +105,13 @@ class TellstickLiveClient(object):
         envelope = message.create_signed_message(
             self.private_key, self.hash_method)
 
-        if self.debug:
-            print("-> ", envelope.serialize())
-        self.socket.write(envelope.serialize())
+        data = envelope.serialize()
+        logging.debug("Sending: %s", data)
+        self.socket.write(data)
 
     def receive_message(self):
         data = self.socket.read(1024)
-        if self.debug:
-            print("<- ", data)
+        logging.debug("Received: %s", data)
 
         envelope = LiveMessage.deserialize(data)
         if not envelope.verify_signature(self.private_key, self.hash_method):

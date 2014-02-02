@@ -25,6 +25,7 @@ import tellcore.constants as const
 
 import argparse
 import configparser
+import logging
 import select
 import time
 
@@ -63,14 +64,13 @@ def handle_command(device, action, value=None):
     elif action == "stop":
         device.stop()
     else:
-        print("Unkown command {}", action)
+        logging.warning("Unkown command '%s'", action)
 
 def main(config):
-    client = TellstickLiveClient(PUBLIC_KEY, PRIVATE_KEY,
-                                 debug=config.getboolean('debug'))
+    client = TellstickLiveClient(PUBLIC_KEY, PRIVATE_KEY)
 
     (server, port) = client.connect_to_first_available_server()
-    print("Connected to {}:{}".format(server, port))
+    logging.info("Connected to %s:%d", server, port)
 
     core = TelldusCore()
 
@@ -113,24 +113,24 @@ def main(config):
             elif msg.subject() == client.SUBJECT_REGISTERD:
                 methods = msg.parameter(0)['supportedMethods']
                 supported_methods = supported_methods & methods
-                print("Client is registered, supported methods: "
-                      "0x{:x} -> 0x{:x}".format(methods, supported_methods))
+                logging.debug("Client is registered, supported methods: "
+                              "0x%02x -> 0x%02x", methods, supported_methods)
                 client.report_devices(core.devices(), supported_methods)
                 client.report_sensors(core.sensors())
 
             elif msg.subject() == client.SUBJECT_NOT_REGISTERED:
-                print("Activate this client by visiting: '{}'".
-                      format(msg.parameter(0)['url']))
+                logging.info("Activate this client by visiting: '%s'",
+                             msg.parameter(0)['url'])
                 config['uuid'] = msg.parameter(0)['uuid']
                 client.disconnect()
                 break
 
             elif msg.subject() == client.SUBJECT_DISCONNECT:
-                client.disconnect()
+                logging.info("Disconnected by server")
                 break
 
             else:
-                print("Unknown subject {}".format(msg.subject()))
+                logging.warning("Unknown subject '%s'", msg.subject())
 
         if now - pong_time >= 6 * 60:
             raise TimeoutError("No pong received in 6 minutes")
@@ -144,12 +144,19 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Connect a TellStick to Telldus Live')
     parser.add_argument('config', help='Configuration file to use')
+    parser.add_argument('-d', '--debug', help="Enable debug logging",
+                        action='store_true')
     args = parser.parse_args()
 
     section = 'settings'
     config = configparser.ConfigParser()
     config[section] = {'uuid': '', 'debug': False}
     config.read(args.config)
+
+    level = logging.INFO
+    if config[section].getboolean('debug') or args.debug:
+        level = logging.DEBUG
+    logging.basicConfig(format='%(asctime)s %(message)s', level=level)
 
     try:
         main(config[section])
