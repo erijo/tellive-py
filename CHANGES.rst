@@ -7,6 +7,7 @@ NEXT (TBD)
 * tellive_core_connector now uses official keys from Telldus, so you no longer
   need to use private tokens.
 * Log using the standard logging module.
+* Reconnect if connection is lost for some reason.
 
 
 0.1.1 (2014-01-28)

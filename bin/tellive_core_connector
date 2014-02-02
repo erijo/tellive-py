@@ -158,8 +158,19 @@ if __name__ == '__main__':
         level = logging.DEBUG
     logging.basicConfig(format='%(asctime)s %(message)s', level=level)
 
-    try:
-        main(config[section])
-    finally:
-        with open(args.config, 'w') as configfile:
-            config.write(configfile)
+    while True:
+        try:
+            main(config[section])
+            break
+        except Exception as e:
+            logging.error("Communication error: %s", e)
+            import random
+            retry_in = random.randint(20, 2 * 60)
+            logging.info("Reconnecting in %d seconds", retry_in)
+            try:
+                time.sleep(retry_in)
+            except KeyboardInterrupt:
+                break
+
+    with open(args.config, 'w') as configfile:
+        config.write(configfile)
