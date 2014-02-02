@@ -35,6 +35,8 @@ class TellstickLiveClient(object):
     SUBJECT_PONG = "pong"
     # <no parameters>
     SUBJECT_DISCONNECT = "disconnect"
+    # "callback"
+    SUBJECT_RELOAD = "reload"
 
     def __init__(self, public_key, private_key):
         super(TellstickLiveClient, self).__init__()

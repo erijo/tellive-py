@@ -129,6 +129,9 @@ def main(config):
                 logging.info("Disconnected by server")
                 break
 
+            elif msg.subject() == client.SUBJECT_RELOAD:
+                raise RuntimeError("Received reload request")
+
             else:
                 logging.warning("Unknown subject '%s'", msg.subject())
 
