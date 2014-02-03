@@ -5,6 +5,7 @@ NEXT (TBD)
 ----------
 
 * Removed reload message as it is not supposed to be sent to clients.
+* Better values for os and os-version in register message.
 
 
 0.2.0 (2014-02-02)

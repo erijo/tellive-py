@@ -19,6 +19,7 @@ from .livemessage import LiveMessage
 
 import http.client as http
 import logging
+import platform
 import socket
 import ssl
 import time
@@ -128,8 +129,18 @@ class TellstickLiveClient(object):
         message = LiveMessage("Register")
         message.append({'key': self.public_key, 'uuid': uuid,
                         'hash': self.hash_method})
+        os = platform.system().lower()
+        if os == "linux":
+            os_version = platform.linux_distribution()[0]
+        elif os == "darwin":
+            os = "macosx"
+            os_version = platform.mac_ver()[0]
+        elif os == "windows":
+            os_version = platform.win32_ver()[0]
+        else:
+            os_version = ""
         message.append({'protocol': 2, 'version': str(version),
-                        'os': "linux", 'os-version': "unknown"})
+                        'os': os, 'os-version': os_version.lower()})
         self.send_message(message)
 
     def ping(self):
