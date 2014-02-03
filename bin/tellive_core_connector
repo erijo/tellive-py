@@ -90,9 +90,6 @@ def main(config):
             client.report_sensor_values(sensor)
     core.register_sensor_event(on_sensor_event)
 
-    ping_time = time.time()
-    pong_time = time.time()
-
     supported_methods = SUPPORTED_METHODS
     client.register(version=tellive.__version__, uuid=config['uuid'])
 
@@ -103,7 +100,6 @@ def main(config):
             client.disconnect()
             break
 
-        now = time.time()
         if rlist and rlist[0] == client.socket:
             msg = client.receive_message()
 
@@ -115,7 +111,7 @@ def main(config):
                     client.acknowledge(params['ACK'])
 
             elif msg.subject() == client.SUBJECT_PONG:
-                pong_time = now
+                pass
 
             elif msg.subject() == client.SUBJECT_REGISTERD:
                 methods = msg.parameter(0)['supportedMethods']
@@ -141,16 +137,13 @@ def main(config):
                 logging.info("Disconnected by server")
                 break
 
-            elif msg.subject() == client.SUBJECT_RELOAD:
-                raise RuntimeError("Received reload request")
-
             else:
                 logging.warning("Unknown subject '%s'", msg.subject())
 
-        if now - pong_time >= 6 * 60:
-            raise RuntimeError("No pong received in 6 minutes")
-        if now - ping_time >= 2 * 60:
-            ping_time = now
+        now = time.time()
+        if now - client.time_received >= 6 * 60:
+            raise RuntimeError("No data received in 6 minutes")
+        if now - client.time_sent >= 2 * 60:
             client.ping()
 
         core.callback_dispatcher.process_pending_callbacks()

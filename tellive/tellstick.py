@@ -21,6 +21,7 @@ import http.client as http
 import logging
 import socket
 import ssl
+import time
 import xml.parsers.expat as expat
 
 
@@ -35,8 +36,6 @@ class TellstickLiveClient(object):
     SUBJECT_PONG = "pong"
     # <no parameters>
     SUBJECT_DISCONNECT = "disconnect"
-    # "callback"
-    SUBJECT_RELOAD = "reload"
 
     def __init__(self, public_key, private_key):
         super(TellstickLiveClient, self).__init__()
@@ -44,6 +43,8 @@ class TellstickLiveClient(object):
         self.public_key = public_key
         self.private_key = private_key
         self.hash_method = "sha1"
+        self.time_sent = 0
+        self.time_received = 0
 
     def ssl_context(self):
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
@@ -110,10 +111,12 @@ class TellstickLiveClient(object):
         data = envelope.serialize()
         logging.debug("Sending: %s", data)
         self.socket.write(data)
+        self.time_sent = time.time()
 
     def receive_message(self):
         data = self.socket.read(1024)
         logging.debug("Received: %s", data)
+        self.time_received = time.time()
 
         envelope = LiveMessage.deserialize(data)
         if not envelope.verify_signature(self.private_key, self.hash_method):

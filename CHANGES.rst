@@ -1,6 +1,12 @@
 Changelog
 =========
 
+NEXT (TBD)
+----------
+
+* Removed reload message as it is not supposed to be sent to clients.
+
+
 0.2.0 (2014-02-02)
 ------------------
 
