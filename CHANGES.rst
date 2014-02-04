@@ -1,8 +1,8 @@
 Changelog
 =========
 
-NEXT (TBD)
-----------
+0.3.0 (2014-02-04)
+------------------
 
 * Removed reload message as it is not supposed to be sent to clients.
 * Better values for os and os-version in register message.
