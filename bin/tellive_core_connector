@@ -78,10 +78,17 @@ def main(config):
             config[key] = ""
         return config[key]
 
+    def device_enabled(device_id):
+        key = "device_{}_enabled".format(device_id)
+        if not key in config:
+            config[key] = "True"
+        return config.getboolean(key)
+
     core = TelldusCore()
 
     def on_device_event(device_id, method, data, cid):
-        client.report_device_event(device_id, method, data)
+        if device_enabled(device_id):
+            client.report_device_event(device_id, method, data)
     core.register_device_event(on_device_event)
 
     def on_sensor_event(protocol, model, id, datatype, value, timestamp, cid):
@@ -106,7 +113,12 @@ def main(config):
             if msg.subject() == client.SUBJECT_COMMAND:
                 params = msg.parameter(0)
                 device = Device(params['id'])
-                handle_command(device, params['action'], params.get('value'))
+                if device_enabled(device.id):
+                    handle_command(device, params['action'],
+                                   params.get('value'))
+                else:
+                    logging.debug("Ignoring command for disabled device %d",
+                                  device.id)
                 if 'ACK' in params:
                     client.acknowledge(params['ACK'])
 
@@ -118,7 +130,12 @@ def main(config):
                 supported_methods = supported_methods & methods
                 logging.debug("Client is registered, supported methods: "
                               "0x%02x -> 0x%02x", methods, supported_methods)
-                client.report_devices(core.devices(), supported_methods)
+
+                devices = []
+                for device in core.devices():
+                    if device_enabled(device.id):
+                        devices.append(device)
+                client.report_devices(devices, supported_methods)
 
                 sensors = []
                 for sensor in core.sensors():
@@ -156,7 +173,9 @@ you need to edit the configuration file and give each sensor that you wish to
 report a name. If you for example have a Oregon EA4C sensor with id 78 in your
 bedroom, you could change the line "sensor_oregon_ea4c_78 =" to
 "sensor_oregon_ea4c_78 = Bedroom" and the sensor will show up in Telldus Live
-with the name Bedroom.
+with the name Bedroom. You can also edit the configuration file if you wish to
+block a device from being controlled from Telldus Live. Locate the line with
+the device id you wish to block and change true to false.
 """
     parser = argparse.ArgumentParser(
         description='Connect a TellStick to Telldus Live', epilog=epilog)
