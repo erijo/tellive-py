@@ -89,6 +89,8 @@ class TellstickLiveClient(object):
         sock.connect(address)
         ssl.match_hostname(sock.getpeercert(), address[0])
         self.socket = sock
+        self.time_sent = time.time()
+        self.time_received = self.time_sent
 
     def connect_to_first_available_server(self, **kwargs):
         for server in self.servers():
