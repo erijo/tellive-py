@@ -192,14 +192,17 @@ the device id you wish to block and change true to false.
     level = logging.INFO
     if config[section].getboolean('debug') or args.debug:
         level = logging.DEBUG
-    logging.basicConfig(format='%(asctime)s %(message)s', level=level)
+    logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
+                        level=level)
 
     while True:
         try:
             main(config[section])
             break
         except Exception as e:
-            logging.error("Communication error: %s", e)
+            logging.error("Communication error: %s", e,
+                          exc_info=(level == logging.DEBUG))
+
             import random
             retry_in = random.randint(20, 2 * 60)
             logging.info("Reconnecting in %d seconds", retry_in)
