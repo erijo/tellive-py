@@ -1,8 +1,8 @@
 Changelog
 =========
 
-NEXT (TBD)
-----------
+0.4.0 (2014-02-06)
+------------------
 
 * Fixed tellive_core_connector to not wake up two times every second, but
   instead only wake up when there is work to do.
