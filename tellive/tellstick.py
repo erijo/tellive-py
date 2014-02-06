@@ -66,7 +66,7 @@ class TellstickLiveClient(object):
         response = conn.getresponse()
         if response.status != http.OK:
             raise RuntimeError("Could not connect to {}:{}: {} {}".format(
-                    server, port, response.status, response.reason))
+                server, port, response.status, response.reason))
 
         servers = []
 
