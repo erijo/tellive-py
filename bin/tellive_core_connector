@@ -20,13 +20,15 @@
 import tellive
 from tellive.tellstick import TellstickLiveClient
 from tellive.livemessage import LiveMessage
-from tellcore.telldus import TelldusCore, Device, Sensor
+from tellcore.telldus import TelldusCore, Device, Sensor, \
+    QueuedCallbackDispatcher
 import tellcore.constants as const
 
 import argparse
 import configparser
 import logging
 import select
+import socket
 import time
 
 # Offical keys for tellive_core_connector
@@ -43,6 +45,63 @@ SUPPORTED_METHODS = const.TELLSTICK_TURNON \
     | const.TELLSTICK_UP \
     | const.TELLSTICK_DOWN \
     | const.TELLSTICK_STOP
+
+PING_INTERVAL = 2 * 60
+PONG_INTERVAL = 6 * 60
+
+def socketpair(family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0):
+    """A socket pair usable as a self-pipe, for Windows.
+
+    Copied from asyncio.
+    Origin: https://gist.github.com/4325783, by Geert Jansen.  Public domain.
+    """
+    # We create a connected TCP socket. Note the trick with setblocking(0)
+    # that prevents us from having to create a thread.
+    lsock = socket.socket(family, type, proto)
+    lsock.bind(('localhost', 0))
+    lsock.listen(1)
+    addr, port = lsock.getsockname()
+    csock = socket.socket(family, type, proto)
+    csock.setblocking(False)
+    try:
+        csock.connect((addr, port))
+    except (BlockingIOError, InterruptedError):
+        pass
+    except Exception:
+        lsock.close()
+        csock.close()
+        raise
+    ssock, _ = lsock.accept()
+    csock.setblocking(True)
+    lsock.close()
+    return (ssock, csock)
+
+
+class SelectableCallbackDispatcher(QueuedCallbackDispatcher):
+    def __init__(self):
+        super().__init__()
+        try:
+            ssock, csock = socket.socketpair()
+        except AttributeError:
+            ssock, csock = socketpair()
+
+        ssock.shutdown(socket.SHUT_WR)
+        self.read_socket = ssock
+
+        csock.shutdown(socket.SHUT_RD)
+        self.write_socket = csock
+
+    def fileno(self):
+        return self.read_socket.fileno()
+
+    def on_callback(self, *args):
+        super().on_callback(*args)
+        self.write_socket.send(b'1')
+
+    def on_readable(self):
+        self.read_socket.recv(1)
+        super().process_callback()
+
 
 def handle_command(device, action, value=None):
     if action == "turnon":
@@ -84,7 +143,8 @@ def main(config):
             config[key] = "True"
         return config.getboolean(key)
 
-    core = TelldusCore()
+    callback_dispatcher = SelectableCallbackDispatcher()
+    core = TelldusCore(callback_dispatcher=callback_dispatcher)
 
     def on_device_event(device_id, method, data, cid):
         if device_enabled(device_id):
@@ -100,14 +160,16 @@ def main(config):
     supported_methods = SUPPORTED_METHODS
     client.register(version=tellive.__version__, uuid=config['uuid'])
 
+    timeout = min(PING_INTERVAL, PONG_INTERVAL)
     while True:
         try:
-            rlist, wlist, xlist = select.select([client.socket], [], [], 0.5)
+            rlist, _, _ = select.select([client.socket, callback_dispatcher],
+                                        [], [], timeout)
         except KeyboardInterrupt:
             client.disconnect()
             break
 
-        if rlist and rlist[0] == client.socket:
+        if client.socket in rlist:
             msg = client.receive_message()
 
             if msg.subject() == client.SUBJECT_COMMAND:
@@ -157,13 +219,23 @@ def main(config):
             else:
                 logging.warning("Unknown subject '%s'", msg.subject())
 
-        now = time.time()
-        if now - client.time_received >= 6 * 60:
-            raise RuntimeError("No data received in 6 minutes")
-        if now - client.time_sent >= 2 * 60:
-            client.ping()
+        if callback_dispatcher in rlist:
+            callback_dispatcher.on_readable()
 
-        core.callback_dispatcher.process_pending_callbacks()
+        now = time.time()
+
+        # Should get something from the server within PONG_INTERVAL
+        next_pong_time = PONG_INTERVAL - (now - client.time_received)
+        if next_pong_time <= 0:
+            raise RuntimeError("No pong received from server")
+
+        # Need to send something to the server at least once in PING_INTERVAL
+        next_ping_time = PING_INTERVAL - (now - client.time_sent)
+        if next_ping_time <= 5:
+            client.ping()
+            next_ping_time = PING_INTERVAL
+
+        timeout = min(next_pong_time, next_ping_time)
 
 if __name__ == '__main__':
     epilog = """
