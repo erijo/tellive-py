@@ -49,6 +49,12 @@ To run the included program for connecting a TellStick to Telldus Live:
 
     $ tellive_core_connector ~/.config/tellive.conf
 
+Press Ctrl+C to exit the program. Then edit the config file
+(``~/.config/tellive.conf`` in this example) and add a name to the sensors that
+you wish to send to Telldus Live. You can also disabled devices that you don't
+want to be controllable via Telldus Live (see ``tellive_core_connector --help``
+for more info). Then start the program again as above.
+
 The API can also be used by your own program. This how you would connect to
 Telldus Live and register the client (with PUBLIC_KEY and PRIVATE_KEY from
 `here <http://api.telldus.com/keys/index>`_):
