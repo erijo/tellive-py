@@ -210,6 +210,11 @@ def main(config):
                              msg.parameter(0)['url'])
                 config['uuid'] = msg.parameter(0)['uuid']
                 client.disconnect()
+                # Add all devices and sensors to the config
+                for device in core.devices():
+                    device_enabled(device.id)
+                for sensor in core.sensors():
+                    sensor_name(sensor)
                 break
 
             elif msg.subject() == client.SUBJECT_DISCONNECT:

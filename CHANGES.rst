@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.4.1 (2014-02-06)
+------------------
+
+* Add all sensors and devices to the config on the first run.
+
+
 0.4.0 (2014-02-06)
 ------------------
 

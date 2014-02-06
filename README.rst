@@ -49,7 +49,11 @@ To run the included program for connecting a TellStick to Telldus Live:
 
     $ tellive_core_connector ~/.config/tellive.conf
 
-Press Ctrl+C to exit the program. Then edit the config file
+The first time you run the program (with a particular config file), it will
+exit and ask you to visit a given URL to give the program access to your
+account.
+
+When you have done so, you can then edit the config file
 (``~/.config/tellive.conf`` in this example) and add a name to the sensors that
 you wish to send to Telldus Live. You can also disabled devices that you don't
 want to be controllable via Telldus Live (see ``tellive_core_connector --help``
