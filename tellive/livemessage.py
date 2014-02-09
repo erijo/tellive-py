@@ -21,7 +21,7 @@ import hashlib
 
 class LiveMessageToken(object):
     def __init__(self, value=None):
-        super(LiveMessageToken, self).__init__()
+        super().__init__()
 
         if type(value) in (int, str, bytes, list, dict):
             self.value = value
@@ -111,7 +111,7 @@ class LiveMessageToken(object):
 
 class LiveMessage(object):
     def __init__(self, subject=None):
-        super(LiveMessage, self).__init__()
+        super().__init__()
         self.tokens = []
         if subject:
             self.append(subject)
@@ -164,17 +164,3 @@ class LiveMessage(object):
         signature.update(data)
         signature.update(private_key.encode('ascii'))
         return signature.hexdigest().lower()
-
-
-if __name__ == '__main__':
-    msg = LiveMessage('test')
-    msg.append([1, 3, 4])
-    msg.append({'a': 'A', 'b': 'BB', 'c': 'CCC'})
-    msg.append(4)
-    msg.append("str")
-    msg.append(b'str')
-    print(msg.serialize())
-    print(LiveMessage.deserialize(msg.serialize()).serialize())
-    print(msg.create_signed_message('12345', 'sha1').serialize())
-    print(msg.create_signed_message('12345', 'sha1').
-          verify_signature('12345', 'sha1'))

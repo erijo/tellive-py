@@ -39,7 +39,7 @@ class TellstickLiveClient(object):
     SUBJECT_DISCONNECT = "disconnect"
 
     def __init__(self, public_key, private_key):
-        super(TellstickLiveClient, self).__init__()
+        super().__init__()
         self.socket = None
         self.public_key = public_key
         self.private_key = private_key
