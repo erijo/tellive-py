@@ -206,8 +206,8 @@ def main(config):
                 client.report_sensors(sensors, name_function=sensor_name)
 
             elif msg.subject() == client.SUBJECT_NOT_REGISTERED:
-                logging.info("Activate this client by visiting: '%s'",
-                             msg.parameter(0)['url'])
+                url = msg.parameter(0)['url']
+                logging.info("Activate this client by visiting: '%s'", url)
                 config['uuid'] = msg.parameter(0)['uuid']
                 client.disconnect()
                 # Add all devices and sensors to the config
@@ -215,6 +215,10 @@ def main(config):
                     device_enabled(device.id)
                 for sensor in core.sensors():
                     sensor_name(sensor)
+
+                logging.info("Trying to open url in browser")
+                import webbrowser
+                webbrowser.open(url)
                 break
 
             elif msg.subject() == client.SUBJECT_DISCONNECT:
