@@ -222,8 +222,7 @@ def main(config):
                 break
 
             elif msg.subject() == client.SUBJECT_DISCONNECT:
-                logging.info("Disconnected by server")
-                break
+                raise RuntimeError("Disconnected by server")
 
             else:
                 logging.warning("Unknown subject '%s'", msg.subject())
