@@ -1,1 +1,2 @@
 tellcore-py>=1.0.3
+oauthlib>=0.5.1
