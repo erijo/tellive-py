@@ -143,6 +143,7 @@ def main(config):
             config[key] = "True"
         return config.getboolean(key)
 
+    TelldusCore.callback_dispatcher = None
     callback_dispatcher = SelectableCallbackDispatcher()
     core = TelldusCore(callback_dispatcher=callback_dispatcher)
 

@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+# Copyright (c) 2014 Erik Johansson <erik@ejohansson.se>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA
+
+import logging
+from tellive.client import LiveClient
+import tellive.live
+
+PUBLIC_KEY = "FEHUVEW84RAFR5SP22RABURUPHAFRUNU"
+PRIVATE_KEY = "ZUXEVEGA9USTAZEWRETHAQUBUR69U6EF"
+
+def main(token, secret):
+    client = LiveClient(PUBLIC_KEY, PRIVATE_KEY, access_token=token,
+                        access_secret=secret, server='telldus', port=8080)
+    if not token:
+        url, request_token, request_secret = client.request_token()
+        import webbrowser
+        webbrowser.open(url)
+        input("Press enter once you have granted access...")
+        token, secret = client.access_token(request_token, request_secret)
+
+    live = tellive.live.TelldusLive(client)
+    for device in live.devices():
+        if device.name == "lamp":
+            device.turn_on()
+    import time
+    time.sleep(2)
+    d = tellive.live.Device(client, 1)
+    print(d.name)
+    d.turn_off()
+
+if __name__ == '__main__':
+    logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
+                        level=logging.DEBUG)
+    token = "ee12a56a44fbdcb7ab74efad5e8ce501051fac2fa"
+    secret = "077e914ba40c157f230cc495bf4c763e"
+    main(token, secret)
