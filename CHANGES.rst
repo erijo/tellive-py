@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.4.2 (2014-02-25)
+------------------
+
+* Fixed problem that could occur after disconnect from server.
+* Fixed tellive_core_connector problem on Mac OS X (issue #1).
+
+
 0.4.1 (2014-02-06)
 ------------------
 
