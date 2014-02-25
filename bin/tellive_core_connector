@@ -88,7 +88,12 @@ class SelectableCallbackDispatcher(QueuedCallbackDispatcher):
         ssock.shutdown(socket.SHUT_WR)
         self.read_socket = ssock
 
-        csock.shutdown(socket.SHUT_RD)
+        try:
+            csock.shutdown(socket.SHUT_RD)
+        except:
+            # On e.g. Mac OS X the SHUT_WR above also closes the read end on
+            # the other side and thus shutdown(SHUT_RD) fails with ENOTCONN.
+            pass
         self.write_socket = csock
 
     def fileno(self):
