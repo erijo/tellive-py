@@ -31,6 +31,13 @@ import select
 import socket
 import time
 
+try:
+    # https://pypi.python.org/pypi/appnope
+    import appnope
+    appnope.nope()
+except:
+    pass
+
 # Offical keys for tellive_core_connector
 PUBLIC_KEY = "THETECHET2STUSWAGACRUWEFU5EWUW5W"
 PRIVATE_KEY = "PES7ANEWURUPHANETUJUPEGEKAWUFAHE"
