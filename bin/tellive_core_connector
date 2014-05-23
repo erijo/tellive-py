@@ -107,10 +107,12 @@ class SelectableCallbackDispatcher(QueuedCallbackDispatcher):
         return self.read_socket.fileno()
 
     def on_callback(self, *args):
+        logging.debug("On callback %d", args[-1])
         super().on_callback(*args)
         self.write_socket.send(b'1')
 
     def on_readable(self):
+        logging.debug("Processing callbacks")
         self.read_socket.recv(1)
         super().process_callback()
 
@@ -160,11 +162,13 @@ def main(config):
     core = TelldusCore(callback_dispatcher=callback_dispatcher)
 
     def on_device_event(device_id, method, data, cid):
+        logging.debug("On device event for device (callback %d)", cid)
         if device_enabled(device_id):
             client.report_device_event(device_id, method, data)
     core.register_device_event(on_device_event)
 
     def on_sensor_event(protocol, model, id, datatype, value, timestamp, cid):
+        logging.debug("On sensor event for sensor (callback %d)", cid)
         sensor = Sensor(protocol, model, id, datatype)
         if sensor_name(sensor):
             client.report_sensor_values(sensor)
