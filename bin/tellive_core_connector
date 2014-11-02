@@ -159,10 +159,28 @@ def main(config):
     callback_dispatcher = SelectableCallbackDispatcher()
     core = TelldusCore(callback_dispatcher=callback_dispatcher)
 
+    def report_devices(supported_methods):
+        devices = []
+        for device in core.devices():
+            if device_enabled(device.id):
+                devices.append(device)
+        client.report_devices(devices, supported_methods)
+
+    def report_sensors():
+        sensors = []
+        for sensor in core.sensors():
+            if sensor_name(sensor):
+                sensors.append(sensor)
+        client.report_sensors(sensors, name_function=sensor_name)
+
     def on_device_event(device_id, method, data, cid):
         if device_enabled(device_id):
             client.report_device_event(device_id, method, data)
     core.register_device_event(on_device_event)
+
+    def on_device_change_event(device_id, event, type, cid):
+        report_devices(supported_methods)
+    core.register_device_change_event(on_device_change_event)
 
     def on_sensor_event(protocol, model, id, datatype, value, timestamp, cid):
         sensor = Sensor(protocol, model, id, datatype)
@@ -206,17 +224,8 @@ def main(config):
                 logging.debug("Client is registered, supported methods: "
                               "0x%02x -> 0x%02x", methods, supported_methods)
 
-                devices = []
-                for device in core.devices():
-                    if device_enabled(device.id):
-                        devices.append(device)
-                client.report_devices(devices, supported_methods)
-
-                sensors = []
-                for sensor in core.sensors():
-                    if sensor_name(sensor):
-                        sensors.append(sensor)
-                client.report_sensors(sensors, name_function=sensor_name)
+                report_devices(supported_methods)
+                report_sensors()
 
             elif msg.subject() == client.SUBJECT_NOT_REGISTERED:
                 url = msg.parameter(0)['url']
