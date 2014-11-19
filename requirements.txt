@@ -1,2 +1,2 @@
-tellcore-py>=1.0.3
+tellcore-py>=1.1.0
 oauthlib>=0.5.1
