@@ -157,15 +157,32 @@ def main(config):
             config[key] = "True"
         return config.getboolean(key)
 
-    TelldusCore.callback_dispatcher = None
     callback_dispatcher = SelectableCallbackDispatcher()
     core = TelldusCore(callback_dispatcher=callback_dispatcher)
+
+    def report_devices(supported_methods):
+        devices = []
+        for device in TelldusCore().devices():
+            if device_enabled(device.id):
+                devices.append(device)
+        client.report_devices(devices, supported_methods)
+
+    def report_sensors():
+        sensors = []
+        for sensor in TelldusCore().sensors():
+            if sensor_name(sensor):
+                sensors.append(sensor)
+        client.report_sensors(sensors, name_function=sensor_name)
 
     def on_device_event(device_id, method, data, cid):
         logging.debug("On device event for device (callback %d)", cid)
         if device_enabled(device_id):
             client.report_device_event(device_id, method, data)
     core.register_device_event(on_device_event)
+
+    def on_device_change_event(device_id, event, type, cid):
+        report_devices(supported_methods)
+    core.register_device_change_event(on_device_change_event)
 
     def on_sensor_event(protocol, model, id, datatype, value, timestamp, cid):
         logging.debug("On sensor event for sensor (callback %d)", cid)
@@ -210,17 +227,8 @@ def main(config):
                 logging.debug("Client is registered, supported methods: "
                               "0x%02x -> 0x%02x", methods, supported_methods)
 
-                devices = []
-                for device in core.devices():
-                    if device_enabled(device.id):
-                        devices.append(device)
-                client.report_devices(devices, supported_methods)
-
-                sensors = []
-                for sensor in core.sensors():
-                    if sensor_name(sensor):
-                        sensors.append(sensor)
-                client.report_sensors(sensors, name_function=sensor_name)
+                report_devices(supported_methods)
+                report_sensors()
 
             elif msg.subject() == client.SUBJECT_NOT_REGISTERED:
                 url = msg.parameter(0)['url']
@@ -239,6 +247,7 @@ def main(config):
                 break
 
             elif msg.subject() == client.SUBJECT_DISCONNECT:
+                client.disconnect()
                 raise RuntimeError("Disconnected by server")
 
             else:
@@ -252,6 +261,7 @@ def main(config):
         # Should get something from the server within PONG_INTERVAL
         next_pong_time = PONG_INTERVAL - (now - client.time_received)
         if next_pong_time <= 0:
+            client.disconnect()
             raise RuntimeError("No pong received from server")
 
         # Need to send something to the server at least once in PING_INTERVAL
@@ -300,13 +310,13 @@ the device id you wish to block and change true to false.
             logging.error("Communication error: %s", e,
                           exc_info=(level == logging.DEBUG))
 
-            import random
-            retry_in = random.randint(20, 2 * 60)
-            logging.info("Reconnecting in %d seconds", retry_in)
-            try:
-                time.sleep(retry_in)
-            except KeyboardInterrupt:
-                break
+        import random
+        retry_in = random.randint(20, 2 * 60)
+        logging.info("Reconnecting in %d seconds", retry_in)
+        try:
+            time.sleep(retry_in)
+        except KeyboardInterrupt:
+            break
 
     with open(args.config, 'w') as configfile:
         config.write(configfile)

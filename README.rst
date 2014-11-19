@@ -32,6 +32,8 @@ Requirements
 
 * Python 3.2+
 * `tellcore-py <https://github.com/erijo/tellcore-py>`_
+* On Mac OS X, `appnope <https://pypi.python.org/pypi/appnope>`_ is
+  recommended.
 
 Installation
 ------------
@@ -55,7 +57,7 @@ account.
 
 When you have done so, you can then edit the config file
 (``~/.config/tellive.conf`` in this example) and add a name to the sensors that
-you wish to send to Telldus Live. You can also disabled devices that you don't
+you wish to send to Telldus Live. You can also disable devices that you don't
 want to be controllable via Telldus Live (see ``tellive_core_connector --help``
 for more info). Then start the program again as above.
 
