@@ -32,6 +32,8 @@ Requirements
 
 * Python 3.2+
 * `tellcore-py <https://github.com/erijo/tellcore-py>`_
+* On Mac OS X, `appnope <https://pypi.python.org/pypi/appnope>`_ is
+  recommended.
 
 Installation
 ------------

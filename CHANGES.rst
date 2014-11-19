@@ -1,6 +1,15 @@
 Changelog
 =========
 
+0.5.0 (2014-11-19)
+------------------
+
+* Disable appnap on Mac OS X if appnope module is available (issue #2).
+* Report new/changed/removed devices to Telldus live.
+* Release socket(s) before waiting to re-connect.
+* Require tellcore-py >= v1.1.0.
+
+
 0.4.2 (2014-02-25)
 ------------------
 
