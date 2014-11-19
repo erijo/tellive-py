@@ -244,6 +244,7 @@ def main(config):
                 break
 
             elif msg.subject() == client.SUBJECT_DISCONNECT:
+                client.disconnect()
                 raise RuntimeError("Disconnected by server")
 
             else:
@@ -257,6 +258,7 @@ def main(config):
         # Should get something from the server within PONG_INTERVAL
         next_pong_time = PONG_INTERVAL - (now - client.time_received)
         if next_pong_time <= 0:
+            client.disconnect()
             raise RuntimeError("No pong received from server")
 
         # Need to send something to the server at least once in PING_INTERVAL
