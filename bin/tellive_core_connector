@@ -307,13 +307,13 @@ the device id you wish to block and change true to false.
             logging.error("Communication error: %s", e,
                           exc_info=(level == logging.DEBUG))
 
-            import random
-            retry_in = random.randint(20, 2 * 60)
-            logging.info("Reconnecting in %d seconds", retry_in)
-            try:
-                time.sleep(retry_in)
-            except KeyboardInterrupt:
-                break
+        import random
+        retry_in = random.randint(20, 2 * 60)
+        logging.info("Reconnecting in %d seconds", retry_in)
+        try:
+            time.sleep(retry_in)
+        except KeyboardInterrupt:
+            break
 
     with open(args.config, 'w') as configfile:
         config.write(configfile)
