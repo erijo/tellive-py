@@ -161,14 +161,14 @@ def main(config):
 
     def report_devices(supported_methods):
         devices = []
-        for device in core.devices():
+        for device in TelldusCore().devices():
             if device_enabled(device.id):
                 devices.append(device)
         client.report_devices(devices, supported_methods)
 
     def report_sensors():
         sensors = []
-        for sensor in core.sensors():
+        for sensor in TelldusCore().sensors():
             if sensor_name(sensor):
                 sensors.append(sensor)
         client.report_sensors(sensors, name_function=sensor_name)
