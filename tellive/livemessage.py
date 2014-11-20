@@ -52,7 +52,7 @@ class LiveMessageToken(object):
                 items.append(LiveMessageToken(value).serialize())
             return b'h' + b''.join(items) + b's'
 
-        assert(False)
+        raise RuntimeError("Unknown type %s" % type(self.value))
 
     @staticmethod
     def deserialize(data):

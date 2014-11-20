@@ -232,18 +232,19 @@ def main(config):
 
             elif msg.subject() == client.SUBJECT_NOT_REGISTERED:
                 url = msg.parameter(0)['url']
-                logging.info("Activate this client by visiting: '%s'", url)
+                logging.info("Please visit the activation URL below to "
+                             "activate this client")
+                logging.info("Once that is done, simply restart the program")
+                logging.info("Activation URL: '%s'", url)
                 config['uuid'] = msg.parameter(0)['uuid']
                 client.disconnect()
+
                 # Add all devices and sensors to the config
                 for device in core.devices():
                     device_enabled(device.id)
                 for sensor in core.sensors():
                     sensor_name(sensor)
 
-                logging.info("Trying to open url in browser")
-                import webbrowser
-                webbrowser.open(url)
                 break
 
             elif msg.subject() == client.SUBJECT_DISCONNECT:
