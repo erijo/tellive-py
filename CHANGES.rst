@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.5.1 (TBD)
+-----------
+
+* Don't try to start browser automatically during first run. In many cases it
+  doesn't work and may hide the URL.
+
+
 0.5.0 (2014-11-19)
 ------------------
 
