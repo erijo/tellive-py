@@ -160,7 +160,7 @@ class TellstickLiveClient(object):
             dev = {'id': device.id, 'name': device.name}
             dev['methods'] = device.methods(supported_methods)
             dev['state'] = device.last_sent_command(supported_methods)
-            dev['stateValue'] = device.last_sent_value()
+            dev['stateValue'] = str(device.last_sent_value() or '')
             dev_list.append(dev)
         message = LiveMessage("DevicesReport")
         message.append(dev_list)
