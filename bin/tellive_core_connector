@@ -175,17 +175,18 @@ def main(config):
         client.report_sensors(sensors, name_function=sensor_name)
 
     def on_device_event(device_id, method, data, cid):
-        logging.debug("On device event for device (callback %d)", cid)
+        logging.debug("On device event (callback %d)", cid)
         if device_enabled(device_id):
             client.report_device_event(device_id, method, data)
     core.register_device_event(on_device_event)
 
     def on_device_change_event(device_id, event, type, cid):
+        logging.debug("On device change event (callback %d)", cid)
         report_devices(supported_methods)
     core.register_device_change_event(on_device_change_event)
 
     def on_sensor_event(protocol, model, id, datatype, value, timestamp, cid):
-        logging.debug("On sensor event for sensor (callback %d)", cid)
+        logging.debug("On sensor event (callback %d)", cid)
         sensor = Sensor(protocol, model, id, datatype)
         if sensor_name(sensor):
             client.report_sensor_values(sensor)
