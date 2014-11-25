@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.5.2 (2014-11-25)
+------------------
+
+* Correctly handle last sent value when it is 0.
+
+
 0.5.1 (2014-11-20)
 ------------------
 
