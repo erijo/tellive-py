@@ -61,6 +61,23 @@ you wish to send to Telldus Live. You can also disable devices that you don't
 want to be controllable via Telldus Live (see ``tellive_core_connector --help``
 for more info). Then start the program again as above.
 
+The program runs well as a background process in e.g. `screen
+<http://www.gnu.org/software/screen/>`_. To have it automatically start after
+boot, you can add the following to your crontab (``crontab -e``). The two lines
+that set ``PYTHONPATH`` and ``PATH`` are only needed if you haven't installed
+the modules, only cloned the repositories or unpacked the tar ball (replace
+``/home/erik`` with the correct path):
+
+.. code-block:: bash
+
+    PYTHONPATH = /home/erik/tellive-py:/home/erik/tellcore-py
+    PATH = /home/erik/tellive-py/bin:/usr/bin:/bin
+
+    @reboot screen -dmS tellive tellive_core_connector ~/tellive.conf
+
+API example
+-----------
+
 The API can also be used by your own program. This how you would connect to
 Telldus Live and register the client (with PUBLIC_KEY and PRIVATE_KEY from
 `here <http://api.telldus.com/keys/index>`_):
