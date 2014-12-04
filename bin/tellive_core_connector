@@ -304,6 +304,12 @@ the device id you wish to block and change true to false.
     logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
                         level=level)
 
+    file_log = logging.FileHandler('tellive.log')
+    file_log.setLevel(logging.DEBUG)
+    file_log.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s'))
+    logging.getLogger().addHandler(file_log)
+
     while True:
         try:
             main(config[section])
