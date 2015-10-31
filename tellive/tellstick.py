@@ -48,13 +48,13 @@ class TellstickLiveClient(object):
         self.time_received = 0
 
     def ssl_context(self):
-        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-        context.verify_mode = ssl.CERT_REQUIRED
         try:
-            context.load_default_certs()
+            return ssl.create_default_context()
         except:
+            context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+            context.verify_mode = ssl.CERT_REQUIRED
             context.set_default_verify_paths()
-        return context
+            return context
 
     def servers(self, server='api.telldus.com', port=http.HTTPS_PORT):
         """Fetch list of servers that can be connected to.
@@ -87,10 +87,14 @@ class TellstickLiveClient(object):
 
     def connect(self, address, timeout=5):
         sock = self.ssl_context().wrap_socket(
-            socket.socket(socket.AF_INET, socket.SOCK_STREAM))
+            socket.socket(socket.AF_INET, socket.SOCK_STREAM),
+            server_hostname=address[0])
         sock.settimeout(timeout)
         sock.connect(address)
-        ssl.match_hostname(sock.getpeercert(), address[0])
+        # check_hostname was added in python 3.4 and is set to True by
+        # create_default_context which was also added in 3.4.
+        if not hasattr(sock.context, "check_hostname"):
+            ssl.match_hostname(sock.getpeercert(), sock.server_hostname)
         self.socket = sock
         self.time_sent = time.time()
         self.time_received = self.time_sent
