@@ -50,7 +50,10 @@ class TellstickLiveClient(object):
     def ssl_context(self):
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         context.verify_mode = ssl.CERT_REQUIRED
-        context.set_default_verify_paths()
+        try:
+            context.load_default_certs()
+        except:
+            context.set_default_verify_paths()
         return context
 
     def servers(self, server='api.telldus.com', port=http.HTTPS_PORT):
