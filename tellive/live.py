@@ -34,7 +34,7 @@ class TelldusLive(object):
                 | const.TELLSTICK_UP \
                 | const.TELLSTICK_DOWN \
                 | const.TELLSTICK_STOP
-        params = {'supportedMethos': supported_methods,
+        params = {'supportedMethods': supported_methods,
                   'extras': 'coordinate,timezone,tzoffset'}
         values = self._client.request("devices/list", params)
         return [Device(self._client, p['id'], p) for p in values['device']]
@@ -74,7 +74,7 @@ class Device(object):
                 | const.TELLSTICK_UP \
                 | const.TELLSTICK_DOWN \
                 | const.TELLSTICK_STOP
-        params = {'id': self.id, 'supportedMethos': supported_methods,
+        params = {'id': self.id, 'supportedMethods': supported_methods,
                   'extras': 'coordinate,timezone,tzoffset'}
         values = self._client.request("device/info", params)
         self._update(values)
